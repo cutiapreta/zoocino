@@ -8,4 +8,4 @@ Here, I’ll be sharing the smart contracts I’ve studied and built as part of 
 This repository contains a collection of Solidity smart contracts designed to showcase various DeFi concepts. Each contract comes with a challenge for you to explore. The challenges are beginner-to-intermediate level, so I encourage you to try them out, whether you're new to Solidity or looking to sharpen your skills.
 
 
-Happy coding, and good luck with the challenges! 🦕🐛
+good luck with the challenges! 🦕🐛
