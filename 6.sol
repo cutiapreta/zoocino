@@ -24,6 +24,8 @@ contract EnglishAuction is ReentrancyGuard {
     uint256 public highestBid;
     address public highestBidder;
     mapping(address => uint256) public bids;
+    mapping(address => uint256) public pendingWithdrawals;
+
 
     event BidPlaced(address indexed bidder, uint256 amount);
     event AuctionEnded(address indexed winner, uint256 amount);
@@ -43,7 +45,9 @@ contract EnglishAuction is ReentrancyGuard {
         // Refund previous highest bidder
         if (highestBidder != address(0)) {
             (bool success, ) = highestBidder.call{value: highestBid}("");
-            require(success, "Refund failed");
+            if (!success ){
+                    pendingWithdrawals[highestBidder] += highestBid;
+            }
         }
 
         highestBid = msg.value;
@@ -64,6 +68,13 @@ contract EnglishAuction is ReentrancyGuard {
             nft.transferFrom(seller, address(this), nftId);
         }
         emit AuctionEnded(highestBidder, highestBid);
+    }
+    function withdraw() external nonReentrant {
+        uint256 amount = pendingWithdrawals[msg.sender];
+        require(amount > 0, "Nothing to withdraw");
+        pendingWithdrawals[msg.sender] = 0;
+        (bool success, ) = msg.sender.call{value: amount}("");
+        require(success, "Withdrawal failed");
     }
 }
 
