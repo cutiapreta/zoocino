@@ -8,6 +8,7 @@ contract SimpleGovernance {
     mapping(uint256 => Proposal) public proposals;
     mapping(address => uint256) public lastVoteBlock;
 
+    // proposal structure
     struct Proposal {
         address proposer;
         uint256 forVotes;
@@ -20,10 +21,12 @@ contract SimpleGovernance {
     event VoteCast(uint256 indexed proposalId, address voter, bool support, uint256 votes);
     event ProposalExecuted(uint256 indexed proposalId);
 
+    // sets governance token
     constructor(IERC20 _govToken) {
         govToken = _govToken;
     }
 
+    // creates a new proposal
     function createProposal() external returns (uint256) {
         require(govToken.balanceOf(msg.sender) > 0, "Not enough tokens");
         proposalCount++;
@@ -38,6 +41,7 @@ contract SimpleGovernance {
         return proposalCount;
     }
 
+    // casts a vote on a proposal
     function vote(uint256 proposalId, bool support) external {
         Proposal storage proposal = proposals[proposalId];
         require(block.number < proposal.endBlock, "Voting ended");
@@ -56,6 +60,7 @@ contract SimpleGovernance {
         emit VoteCast(proposalId, msg.sender, support, balance);
     }
 
+    // executes a passed proposal
     function executeProposal(uint256 proposalId) external {
         Proposal storage proposal = proposals[proposalId];
         require(block.number >= proposal.endBlock, "Voting not ended");
@@ -63,7 +68,6 @@ contract SimpleGovernance {
         require(proposal.forVotes > proposal.againstVotes, "Proposal failed");
 
         proposal.executed = true;
-        // Execute proposal logic here (e.g., change parameters)
         emit ProposalExecuted(proposalId);
     }
 }
