@@ -16,13 +16,15 @@ contract SimpleYieldFarm {
     event Staked(address indexed user, uint256 amount);
     event Withdrawn(address indexed user, uint256 amount);
     event RewardPaid(address indexed user, uint256 amount);
-
+    
+    // sets staking and reward tokens
     constructor(IERC20 _stakingToken, IERC20 _rewardToken) {
         stakingToken = _stakingToken;
         rewardToken = _rewardToken;
         lastUpdateTime = block.timestamp;
     }
 
+    // updates rewards for a user
     function updateReward(address user) internal {
         rewardPerTokenStored = rewardPerToken();
         lastUpdateTime = block.timestamp;
@@ -31,17 +33,20 @@ contract SimpleYieldFarm {
             userRewardPerTokenPaid[user] = rewardPerTokenStored;
         }
     }
-
+    
+    // calculates reward per staked token
     function rewardPerToken() public view returns (uint256) {
         if (totalStaked == 0) return rewardPerTokenStored;
         uint256 timePassed = block.timestamp - lastUpdateTime;
         return rewardPerTokenStored + (timePassed * rewardRate * 1e18 / totalStaked);
     }
 
+    // calculates user's earned rewards
     function earned(address user) public view returns (uint256) {
         return (userStaked[user] * (rewardPerToken() - userRewardPerTokenPaid[user])) / 1e18 + rewards[user];
     }
 
+    // stakes tokens
     function stake(uint256 amount) external {
         updateReward(msg.sender);
         stakingToken.transferFrom(msg.sender, address(this), amount);
@@ -50,6 +55,7 @@ contract SimpleYieldFarm {
         emit Staked(msg.sender, amount);
     }
 
+    // withdraws staked tokens
     function withdraw(uint256 amount) external {
         updateReward(msg.sender);
         require(userStaked[msg.sender] >= amount, "Not enough staked");
@@ -59,6 +65,7 @@ contract SimpleYieldFarm {
         emit Withdrawn(msg.sender, amount);
     }
 
+    // claims user's rewards
     function getReward() external {
         updateReward(msg.sender);
         uint256 reward = rewards[msg.sender];
